@@ -1,13 +1,13 @@
 {
   "name": "discord-bot",
   "version": "1.0.0",
-  "description": "A stylish Discord bot built with Discord.js v14, Render, and GitHub",
+  "description": "Stylish Discord bot with Discord.js v14 and Render environment variables",
   "main": "index.js",
   "type": "module",
- "scripts": {
-  "start": "node index.js",
-  "deploy": "node deploy-commands.js"
-},
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
+  },
   "dependencies": {
     "discord.js": "^14.15.0",
     "dotenv": "^16.4.0"
