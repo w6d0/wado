@@ -5,6 +5,6 @@ export default {
 	once: true,
 	execute(client) {
 		console.log(`✅ Ready! Logged in as ${client.user.tag}`);
-		client.user.setActivity('✨ Stylish Bot is online!', { type: 3 });
+		client.user.setActivity('✨ わどぼっと 稼働中', { type: 3 });
 	},
 };
