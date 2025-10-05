@@ -1,12 +1,13 @@
 // ==========================
-// わどぼっと
+// わどぼっと 24時間稼働版
 // ==========================
 
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import express from 'express';
-import cors from 'cors'; // ← 追加！
+import cors from 'cors';
+import fetch from 'node-fetch';
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { fileURLToPath } from 'url';
 
@@ -43,20 +44,20 @@ client.login(process.env.TOKEN);
 
 // ===== Express サーバー（Render用API） =====
 const app = express();
-app.use(cors()); // 🌐 ← GitHub Pagesからのアクセスを許可！
+app.use(cors());
 
-// テスト用ルート
+// 🔹 テスト用ルート
 app.get('/', (req, res) => {
 	res.send('わどぼっと is running!');
 });
 
-// GitHub Pages側が利用するステータスAPI
+// 🔹 ステータスAPI
 app.get('/status', (req, res) => {
 	const status = client.ws.status === 0 ? 'online' : 'offline';
 	res.json({ status });
 });
 
-// サーバー起動（Renderが自動でPORT指定）
+// 🔹 サーバー起動（Render自動PORT）
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🌐 Express API running on port ${PORT}`));
 
@@ -65,3 +66,18 @@ client.once('ready', () => {
 	console.log(`✅ Ready! Logged in as ${client.user.tag}`);
 	client.user.setActivity('✨ わどぼっと 稼働中', { type: 3 });
 });
+
+// ===============================
+// 🟢 Renderスリープ防止: 自己Ping機能
+// ===============================
+const SELF_URL = process.env.SELF_URL || 'https://wado.onrender.com';
+
+// 🔁 定期的に自分にアクセス（5分おき）
+setInterval(async () => {
+	try {
+		await fetch(`${SELF_URL}/status`);
+		console.log('🔁 Self-ping sent to keep bot alive.');
+	} catch (err) {
+		console.error('⚠️ Self-ping failed:', err);
+	}
+}, 5 * 60 * 1000); // 5分
