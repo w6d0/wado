@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { REST, Routes } from 'discord.js';
 import { fileURLToPath } from 'url';
-import { clientId, guildId, token } from './config.json' assert { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,24 +16,22 @@ for (const folder of fs.readdirSync(foldersPath)) {
 		const command = await import(`./commands/${folder}/${file}`);
 		if ('data' in command.default && 'execute' in command.default) {
 			commands.push(command.default.data.toJSON());
-		} else {
-			console.log(`[警告] ${file} に "data" または "execute" が見つかりません。`);
 		}
 	}
 }
 
-const rest = new REST().setToken(token);
+const rest = new REST().setToken(process.env.TOKEN);
 
 (async () => {
 	try {
-		console.log(`🔄 ${commands.length} 件のスラッシュコマンドを登録中...`);
+		console.log(`🔄 ${commands.length} 件のコマンドを登録中...`);
 
-		const data = await rest.put(
-			Routes.applicationGuildCommands(clientId, guildId),
+		await rest.put(
+			Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
 			{ body: commands },
 		);
 
-		console.log(`✅ 登録完了！ ${data.length} 件のコマンドを更新しました。`);
+		console.log(`✅ 登録完了！`);
 	} catch (error) {
 		console.error('❌ 登録エラー:', error);
 	}
