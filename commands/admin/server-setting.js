@@ -18,7 +18,7 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   async execute(interaction) {
-    // --- 確認用Embed ---
+    // --- 初期確認Embed ---
     const embed = new EmbedBuilder()
       .setColor(0xffa534)
       .setTitle('⚙️ サーバー再構築の確認')
@@ -39,6 +39,9 @@ export default {
     collector.on('collect', async (i) => {
       await i.deferUpdate();
 
+      // ======================
+      // ✅ 「はい」→ 再構築開始
+      // ======================
       if (i.customId === 'yes_reset') {
         await i.editReply({
           embeds: [
@@ -115,7 +118,7 @@ export default {
           parent: free,
         });
 
-        await interaction.guild.channels.create({
+        const adminChat = await interaction.guild.channels.create({
           name: 'admin-chat',
           type: ChannelType.GuildText,
           parent: admin,
@@ -131,7 +134,7 @@ export default {
           ],
         });
 
-        await interaction.guild.channels.create({
+        const logsChannel = await interaction.guild.channels.create({
           name: 'logs',
           type: ChannelType.GuildText,
           parent: admin,
@@ -153,21 +156,39 @@ export default {
           parent: ticket,
         });
 
+        // ✅ 完了メッセージ
         await i.editReply({
           embeds: [
             new EmbedBuilder()
               .setColor(0x00ffcc)
-              .setTitle('✅ 完了')
+              .setTitle('✅ 再構築完了')
               .setDescription('新しいサーバー構成を作成しました！'),
           ],
           components: [],
         });
 
+        // 📢 adminログ通知
+        if (logsChannel) {
+          const logEmbed = new EmbedBuilder()
+            .setColor(0xffa534)
+            .setTitle('🛠 サーバー再構築が実行されました')
+            .setDescription(
+              `実行者: <@${interaction.user.id}>\n\n` +
+              '```diff\n+ サーバーのチャンネルとカテゴリが新しく再構築されました。\n```'
+            )
+            .setTimestamp()
+            .setFooter({ text: 'わどぼっと | 管理ログ' });
+
+          await logsChannel.send({ embeds: [logEmbed] });
+        }
+
         collector.stop();
       }
 
+      // ======================
+      // ❌ 「いいえ」→ 追加確認
+      // ======================
       if (i.customId === 'no_reset') {
-        // 再確認Embed
         const embed2 = new EmbedBuilder()
           .setColor(0xffc300)
           .setTitle('🗂 チャンネルを削除せずに追加しますか？')
@@ -181,8 +202,10 @@ export default {
         await i.editReply({ embeds: [embed2], components: [row2] });
       }
 
+      // ======================
+      // ✅ 下に追加する場合
+      // ======================
       if (i.customId === 'yes_add') {
-        // ✅ 下に追加（削除なし）
         await i.editReply({
           embeds: [
             new EmbedBuilder()
@@ -192,27 +215,29 @@ export default {
           components: [],
         });
 
-        // ここで同様にカテゴリ作成
-        await interaction.guild.channels.create({
-          name: 'Welcome',
-          type: ChannelType.GuildCategory,
-        });
-        await interaction.guild.channels.create({
-          name: 'free',
-          type: ChannelType.GuildCategory,
-        });
-        await interaction.guild.channels.create({
-          name: 'admin',
-          type: ChannelType.GuildCategory,
-        });
-        await interaction.guild.channels.create({
-          name: 'ticket',
-          type: ChannelType.GuildCategory,
-        });
+        await interaction.guild.channels.create({ name: 'Welcome', type: ChannelType.GuildCategory });
+        await interaction.guild.channels.create({ name: 'free', type: ChannelType.GuildCategory });
+        await interaction.guild.channels.create({ name: 'admin', type: ChannelType.GuildCategory });
+        await interaction.guild.channels.create({ name: 'ticket', type: ChannelType.GuildCategory });
+
+        // ログ送信
+        const logChannel = interaction.guild.channels.cache.find(ch => ch.name === 'logs');
+        if (logChannel) {
+          const logEmbed = new EmbedBuilder()
+            .setColor(0x00ffcc)
+            .setTitle('📁 新しいカテゴリを追加しました')
+            .setDescription(`実行者: <@${interaction.user.id}>`)
+            .setTimestamp()
+            .setFooter({ text: 'わどぼっと | 管理ログ' });
+          await logChannel.send({ embeds: [logEmbed] });
+        }
 
         collector.stop();
       }
 
+      // ======================
+      // 🚫 キャンセル
+      // ======================
       if (i.customId === 'no_add') {
         await i.editReply({
           embeds: [
