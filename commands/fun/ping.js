@@ -18,7 +18,7 @@ export default {
 		const button = new ButtonBuilder()
 			.setLabel('公式サイトを見る')
 			.setStyle(ButtonStyle.Link)
-			.setURL('https://github.com/yourusername/yourbot');
+			.setURL('https://w6d0.github.io/wado-support/');
 
 		const row = new ActionRowBuilder().addComponents(button);
 
