@@ -1,7 +1,7 @@
 {
-  "name": "discord-bot",
+  "name": "wadobot",
   "version": "1.0.0",
-  "description": "Stylish Discord bot with Discord.js v14 and Render environment variables",
+  "description": "わどぼっと Discord Bot built with Discord.js v14",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "discord.js": "^14.15.0",
-    "dotenv": "^16.4.0"
+    "dotenv": "^16.4.0",
+    "express": "^4.19.2"
   }
 }
