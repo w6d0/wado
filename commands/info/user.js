@@ -21,7 +21,7 @@ export default {
 				{ name: '🕒 アカウント作成日', value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`, inline: true },
 				{ name: '🏰 サーバー参加日', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` },
 			)
-			.setFooter({ text: 'おしゃれBot✨', iconURL: interaction.client.user.displayAvatarURL() });
+			.setFooter({ text: 'わどぼっと✨', iconURL: interaction.client.user.displayAvatarURL() });
 
 		await interaction.reply({ embeds: [embed] });
 	},
