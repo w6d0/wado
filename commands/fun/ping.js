@@ -16,7 +16,7 @@ export default {
 			.setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() });
 
 		const button = new ButtonBuilder()
-			.setLabel('GitHubで見る')
+			.setLabel('公式サイトを見る')
 			.setStyle(ButtonStyle.Link)
 			.setURL('https://github.com/yourusername/yourbot');
 
