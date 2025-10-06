@@ -16,13 +16,13 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: 64 });
 
     const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
 
     const embed = new EmbedBuilder()
       .setColor(0xff4d4d)
-      .setTitle('💣 Nuke確認')
+      .setTitle('💣 チャンネルリセット確認')
       .setDescription(
         `以下のチャンネルをリセットしますか？\n\`\`\`yaml\nチャンネル: #${targetChannel.name}\nID: ${targetChannel.id}\n\`\`\``
       )
@@ -41,7 +41,7 @@ export default {
     });
 
     collector.on('collect', async i => {
-      await i.deferUpdate();
+      if (!i.deferred && !i.replied) await i.deferUpdate();
 
       if (i.customId === 'yes_nuke') {
         try {
