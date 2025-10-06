@@ -8,7 +8,7 @@ import {
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('benner') // ご要望どおり「benner」
+    .setName('banner') 
     .setDescription('指定ユーザーのバナーを表示します（省略で自分）')
     .addUserOption((opt) => opt.setName('target').setDescription('対象ユーザー').setRequired(false)),
 
