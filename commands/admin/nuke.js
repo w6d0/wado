@@ -6,14 +6,13 @@ import {
   ActionRowBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
+import { createLogImage } from '../../utils/logImage.js';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('nuke')
-    .setDescription('指定したチャンネルを完全リセット（複製→削除）します（確認あり）')
-    .addChannelOption(o =>
-      o.setName('channel').setDescription('対象チャンネル（未指定ならこのチャンネル）').setRequired(false)
-    )
+    .setDescription('チャンネルを完全リセットします（ログ付き）')
+    .addChannelOption(o => o.setName('channel').setDescription('対象チャンネル').setRequired(false))
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 
   async execute(interaction) {
@@ -23,30 +22,22 @@ export default {
 
     const embed = new EmbedBuilder()
       .setColor(0xff4d4d)
-      .setTitle('💣 チャンネルリセット 確認')
+      .setTitle('💣 Nuke確認')
       .setDescription(
-        `以下のチャンネルを **完全リセット** しますか？\n\n\`\`\`yaml\nチャンネル: #${targetChannel.name}\nID: ${targetChannel.id}\n実行者: ${interaction.user.tag}\n\`\`\`\n⚠️ メッセージ履歴はすべて削除されます。`
+        `以下のチャンネルをリセットしますか？\n\`\`\`yaml\nチャンネル: #${targetChannel.name}\nID: ${targetChannel.id}\n\`\`\``
       )
       .setImage('attachment://Guild.png');
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('yes_nuke').setLabel('はい').setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId('no_nuke').setLabel('いいえ').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setLabel('📜 履歴を見る')
-        .setStyle(ButtonStyle.Link)
-        .setURL('https://wado.onrender.com/nuke-logs')
+      new ButtonBuilder().setCustomId('no_nuke').setLabel('いいえ').setStyle(ButtonStyle.Secondary)
     );
 
-    await interaction.editReply({
-      embeds: [embed],
-      components: [row],
-      files: ['./commands/admin/Guild.png'],
-    });
+    await interaction.editReply({ embeds: [embed], components: [row], files: ['./commands/admin/Guild.png'] });
 
     const collector = interaction.channel.createMessageComponentCollector({
       filter: i => i.user.id === interaction.user.id,
-      time: 15000,
+      time: 20000,
     });
 
     collector.on('collect', async i => {
@@ -54,25 +45,26 @@ export default {
 
       if (i.customId === 'yes_nuke') {
         try {
-          const newChannel = await targetChannel.clone({
-            reason: `Nuke by ${interaction.user.tag}`,
-          });
+          const newChannel = await targetChannel.clone({ reason: `Nuke by ${interaction.user.tag}` });
           await newChannel.setPosition(targetChannel.position + 1);
           await targetChannel.delete();
 
+          const logFile = await createLogImage({
+            title: '💣 Nuke Log',
+            user: interaction.user.tag,
+            channel: newChannel.name,
+            action: 'nuke',
+          });
+
           const done = new EmbedBuilder()
             .setColor(0x00ffcc)
-            .setTitle('✅ チャンネル再構築 完了')
-            .setDescription(
-              `\`\`\`diff\n+ #${newChannel.name} を再構築しました。\n+ 旧チャンネルは削除されました。\n\`\`\``
-            )
-            .setImage('attachment://Guild.png')
-            .setFooter({ text: `実行者: ${interaction.user.tag}` });
+            .setTitle('✅ チャンネル再構築完了')
+            .setDescription(`\`\`\`diff\n+ #${newChannel.name} を再作成しました。\n\`\`\``);
 
-          await newChannel.send({ embeds: [done], files: ['./commands/admin/Guild.png'] });
-          await interaction.editReply({ embeds: [done], components: [], files: ['./commands/admin/Guild.png'] });
+          await newChannel.send({ embeds: [done], files: [logFile] });
+          await interaction.editReply({ embeds: [done], components: [], files: [logFile] });
         } catch (err) {
-          await interaction.editReply({ content: `⚠️ エラー: ${err.message}`, components: [] });
+          await interaction.editReply({ content: `⚠️ エラー: ${err.message}` });
         }
         collector.stop();
       }
