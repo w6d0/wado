@@ -6,17 +6,15 @@ import {
   ActionRowBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
+import { createLogImage } from '../../utils/logImage.js';
+import path from 'path';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('clear')
-    .setDescription('指定したチャンネルのメッセージを削除します（確認あり）')
-    .addIntegerOption(o =>
-      o.setName('amount').setDescription('削除するメッセージ数（最大100）').setRequired(true)
-    )
-    .addChannelOption(o =>
-      o.setName('channel').setDescription('削除対象チャンネル（未指定ならこのチャンネル）').setRequired(false)
-    )
+    .setDescription('指定チャンネルのメッセージを削除します（ログ付き）')
+    .addIntegerOption(o => o.setName('amount').setDescription('削除する件数（最大100）').setRequired(true))
+    .addChannelOption(o => o.setName('channel').setDescription('対象チャンネル').setRequired(false))
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
 
   async execute(interaction) {
@@ -26,34 +24,26 @@ export default {
     const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
 
     if (amount < 1 || amount > 100)
-      return interaction.editReply('⚠️ 削除できる数は **1〜100** の間です。');
+      return interaction.editReply('⚠️ 削除数は 1〜100 の範囲で指定してください。');
 
     const embed = new EmbedBuilder()
       .setColor(0xffa534)
-      .setTitle('🧹 メッセージ削除 確認')
+      .setTitle('🧹 削除確認')
       .setDescription(
-        `以下の内容で削除を実行しますか？\n\n\`\`\`yaml\nチャンネル: #${targetChannel.name}\n削除件数: ${amount}\n実行者: ${interaction.user.tag}\n\`\`\``
+        `以下の内容で削除を実行しますか？\n\`\`\`yaml\nチャンネル: #${targetChannel.name}\n件数: ${amount}\n\`\`\``
       )
       .setImage('attachment://Guild.png');
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId('yes_clear').setLabel('はい').setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId('no_clear').setLabel('いいえ').setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setLabel('🕒 履歴を見る')
-        .setStyle(ButtonStyle.Link)
-        .setURL('https://wado.onrender.com/clear-logs')
+      new ButtonBuilder().setCustomId('no_clear').setLabel('いいえ').setStyle(ButtonStyle.Secondary)
     );
 
-    await interaction.editReply({
-      embeds: [embed],
-      components: [row],
-      files: ['./commands/admin/Guild.png'],
-    });
+    await interaction.editReply({ embeds: [embed], components: [row], files: ['./commands/admin/Guild.png'] });
 
     const collector = interaction.channel.createMessageComponentCollector({
       filter: i => i.user.id === interaction.user.id,
-      time: 15000,
+      time: 20000,
     });
 
     collector.on('collect', async i => {
@@ -61,18 +51,25 @@ export default {
 
       if (i.customId === 'yes_clear') {
         try {
-          const messages = await targetChannel.bulkDelete(amount, true);
+          const deleted = await targetChannel.bulkDelete(amount, true);
+          const logFile = await createLogImage({
+            title: '🧹 Clear Log',
+            user: interaction.user.tag,
+            channel: targetChannel.name,
+            count: deleted.size,
+            action: 'clear',
+          });
+
           const done = new EmbedBuilder()
             .setColor(0x00ffcc)
             .setTitle('✅ 削除完了')
             .setDescription(
-              `\`\`\`diff\n+ ${messages.size} 件のメッセージを削除しました。\n+ チャンネル: #${targetChannel.name}\n\`\`\``
-            )
-            .setFooter({ text: `実行者: ${interaction.user.tag}` })
-            .setImage('attachment://Guild.png');
-          await interaction.editReply({ embeds: [done], components: [], files: ['./commands/admin/Guild.png'] });
+              `\`\`\`diff\n+ ${deleted.size} 件のメッセージを削除しました。\n+ チャンネル: #${targetChannel.name}\n\`\`\``
+            );
+
+          await interaction.editReply({ embeds: [done], components: [], files: [logFile] });
         } catch (err) {
-          await interaction.editReply({ content: `⚠️ エラー: ${err.message}`, components: [] });
+          await interaction.editReply({ content: `⚠️ エラー: ${err.message}` });
         }
         collector.stop();
       }
