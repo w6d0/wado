@@ -7,18 +7,17 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import { createLogImage } from '../../utils/logImage.js';
-import path from 'path';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('clear')
     .setDescription('指定チャンネルのメッセージを削除します（ログ付き）')
-    .addIntegerOption(o => o.setName('amount').setDescription('削除する件数（最大100）').setRequired(true))
+    .addIntegerOption(o => o.setName('amount').setDescription('削除件数（最大100）').setRequired(true))
     .addChannelOption(o => o.setName('channel').setDescription('対象チャンネル').setRequired(false))
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: 64 });
 
     const amount = interaction.options.getInteger('amount');
     const targetChannel = interaction.options.getChannel('channel') || interaction.channel;
@@ -47,11 +46,12 @@ export default {
     });
 
     collector.on('collect', async i => {
-      await i.deferUpdate();
+      if (!i.deferred && !i.replied) await i.deferUpdate();
 
       if (i.customId === 'yes_clear') {
         try {
           const deleted = await targetChannel.bulkDelete(amount, true);
+
           const logFile = await createLogImage({
             title: '🧹 Clear Log',
             user: interaction.user.tag,
