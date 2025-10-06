@@ -1,10 +1,17 @@
-import { createCanvas, loadImage } from 'canvas';
+import { createCanvas, registerFont } from 'canvas';
 import fs from 'fs';
 import path from 'path';
 
+// ✅ 日本語フォント登録（フォントファイルがなければデフォルトフォント）
+try {
+  registerFont('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', { family: 'DejaVuSans' });
+} catch {
+  console.warn('⚠️ フォント登録がスキップされました。');
+}
+
 export async function createLogImage({ title, user, channel, count, action }) {
-  const width = 700;
-  const height = 250;
+  const width = 720;
+  const height = 260;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
 
@@ -14,22 +21,26 @@ export async function createLogImage({ title, user, channel, count, action }) {
 
   // タイトル
   ctx.fillStyle = '#ffcc00';
-  ctx.font = 'bold 28px "Segoe UI"';
-  ctx.fillText(title, 30, 50);
+  ctx.font = 'bold 30px "DejaVuSans"';
+  ctx.fillText(title, 40, 60);
 
-  // 情報
+  // テキスト
   ctx.fillStyle = '#ffffff';
-  ctx.font = '20px "Segoe UI"';
-  ctx.fillText(`🧍 実行者: ${user}`, 30, 100);
-  ctx.fillText(`💬 チャンネル: #${channel}`, 30, 140);
-  if (count) ctx.fillText(`🧹 件数: ${count}`, 30, 180);
-  ctx.fillText(`📅 実行時刻: ${new Date().toLocaleString('ja-JP')}`, 30, 220);
+  ctx.font = '20px "DejaVuSans"';
+  let y = 120;
+  ctx.fillText(`🧍 実行者 : ${user}`, 40, y);
+  y += 40;
+  ctx.fillText(`💬 チャンネル : #${channel}`, 40, y);
+  y += 40;
+  if (count !== undefined) ctx.fillText(`🧹 件数 : ${count}`, 40, y);
+  y += 40;
+  ctx.fillText(`📅 実行時刻 : ${new Date().toLocaleString('ja-JP')}`, 40, y);
 
-  // ファイル保存
+  // 保存ディレクトリ
   const logsDir = path.join(process.cwd(), 'logs');
   if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
-  const filePath = path.join(logsDir, `${channel}-${action}.png`);
 
+  const filePath = path.join(logsDir, `${channel}-${action}.png`);
   const buffer = canvas.toBuffer('image/png');
   fs.writeFileSync(filePath, buffer);
 
