@@ -6,12 +6,11 @@ import {
   ActionRowBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import { createLogImage } from '../../utils/logImage.js';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('nuke')
-    .setDescription('チャンネルを完全リセットします（ログ画像付き）')
+    .setDescription('チャンネルを完全リセットします（画像＋ログ付き）')
     .addChannelOption(opt =>
       opt.setName('channel').setDescription('対象チャンネル').setRequired(false)
     )
@@ -54,25 +53,18 @@ export default {
           await newChannel.setPosition(targetChannel.position + 1);
           await targetChannel.delete();
 
-          const logFile = await createLogImage({
-            title: '💣 Nuke Log',
-            user: interaction.user.tag,
-            channel: newChannel.name,
-            action: 'nuke',
-          });
-
-          const done = new EmbedBuilder()
+          const logEmbed = new EmbedBuilder()
             .setColor(0x00ffcc)
             .setTitle('✅ チャンネル再構築完了')
-            .setDescription(`\`\`\`diff\n+ #${newChannel.name} を再作成しました！\n\`\`\``)
-            .setImage('attachment://Guild.png');
+            .setDescription(
+              `\`\`\`yaml\n実行者: ${interaction.user.tag}\n再構築チャンネル: #${newChannel.name}\n時間: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}\n\`\`\``
+            )
+            .setImage('attachment://Guild.png')
+            .setFooter({ text: 'わどぼっと 自動ログ生成' });
 
           await newChannel.send({
-            embeds: [done],
-            files: [
-              { attachment: './commands/admin/Guild.png', name: 'Guild.png' },
-              logFile,
-            ],
+            embeds: [logEmbed],
+            files: [{ attachment: './commands/admin/Guild.png', name: 'Guild.png' }],
           });
         } catch (err) {
           console.error(err);
