@@ -12,8 +12,12 @@ export default {
   data: new SlashCommandBuilder()
     .setName('clear')
     .setDescription('指定チャンネルのメッセージを削除します（ログ付き）')
-    .addIntegerOption(o => o.setName('amount').setDescription('削除件数（最大100）').setRequired(true))
-    .addChannelOption(o => o.setName('channel').setDescription('対象チャンネル').setRequired(false))
+    .addIntegerOption(o =>
+      o.setName('amount').setDescription('削除件数（最大100）').setRequired(true)
+    )
+    .addChannelOption(o =>
+      o.setName('channel').setDescription('対象チャンネル').setRequired(false)
+    )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
 
   async execute(interaction) {
@@ -38,7 +42,11 @@ export default {
       new ButtonBuilder().setCustomId('no_clear').setLabel('いいえ').setStyle(ButtonStyle.Secondary)
     );
 
-    await interaction.editReply({ embeds: [embed], components: [row], files: ['./commands/admin/Guild.png'] });
+    await interaction.editReply({
+      embeds: [embed],
+      components: [row],
+      files: [{ attachment: './commands/admin/Guild.png', name: 'Guild.png' }],
+    });
 
     const collector = interaction.channel.createMessageComponentCollector({
       filter: i => i.user.id === interaction.user.id,
@@ -65,9 +73,17 @@ export default {
             .setTitle('✅ 削除完了')
             .setDescription(
               `\`\`\`diff\n+ ${deleted.size} 件のメッセージを削除しました。\n+ チャンネル: #${targetChannel.name}\n\`\`\``
-            );
+            )
+            .setImage('attachment://Guild.png');
 
-          await interaction.editReply({ embeds: [done], components: [], files: [logFile] });
+          await interaction.editReply({
+            embeds: [done],
+            components: [],
+            files: [
+              { attachment: './commands/admin/Guild.png', name: 'Guild.png' },
+              logFile,
+            ],
+          });
         } catch (err) {
           await interaction.editReply({ content: `⚠️ エラー: ${err.message}` });
         }
@@ -75,7 +91,11 @@ export default {
       }
 
       if (i.customId === 'no_clear') {
-        await interaction.editReply({ content: '🚫 操作をキャンセルしました。', embeds: [], components: [] });
+        await interaction.editReply({
+          content: '🚫 操作をキャンセルしました。',
+          embeds: [],
+          components: [],
+        });
         collector.stop();
       }
     });
