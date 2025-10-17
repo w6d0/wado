@@ -38,7 +38,7 @@ export default {
     const msg = await interaction.editReply({
       embeds: [embed],
       components: [row],
-      files: ['./commands/admin/Guild.png'],
+      files: [{ attachment: './commands/admin/Guild.png', name: 'Guild.png' }],
     });
 
     const collector = msg.createMessageComponentCollector({
@@ -64,9 +64,16 @@ export default {
           const done = new EmbedBuilder()
             .setColor(0x00ffcc)
             .setTitle('✅ チャンネル再構築完了')
-            .setDescription(`\`\`\`diff\n+ #${newChannel.name} を再作成しました！\n\`\`\``);
+            .setDescription(`\`\`\`diff\n+ #${newChannel.name} を再作成しました！\n\`\`\``)
+            .setImage('attachment://Guild.png');
 
-          await newChannel.send({ embeds: [done], files: [logFile] });
+          await newChannel.send({
+            embeds: [done],
+            files: [
+              { attachment: './commands/admin/Guild.png', name: 'Guild.png' },
+              logFile,
+            ],
+          });
         } catch (err) {
           console.error(err);
         }
