@@ -6,12 +6,11 @@ import {
   ActionRowBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import { createLogImage } from '../../utils/logImage.js';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('clear')
-    .setDescription('指定チャンネルのメッセージを削除します（ログ付き）')
+    .setDescription('指定チャンネルのメッセージを削除します（画像＋ログ付き）')
     .addIntegerOption(o =>
       o.setName('amount').setDescription('削除件数（最大100）').setRequired(true)
     )
@@ -60,29 +59,19 @@ export default {
         try {
           const deleted = await targetChannel.bulkDelete(amount, true);
 
-          const logFile = await createLogImage({
-            title: '🧹 Clear Log',
-            user: interaction.user.tag,
-            channel: targetChannel.name,
-            count: deleted.size,
-            action: 'clear',
-          });
-
-          const done = new EmbedBuilder()
+          const logEmbed = new EmbedBuilder()
             .setColor(0x00ffcc)
             .setTitle('✅ 削除完了')
             .setDescription(
-              `\`\`\`diff\n+ ${deleted.size} 件のメッセージを削除しました。\n+ チャンネル: #${targetChannel.name}\n\`\`\``
+              `\`\`\`yaml\n実行者: ${interaction.user.tag}\nチャンネル: #${targetChannel.name}\n削除件数: ${deleted.size}\n時間: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}\n\`\`\``
             )
-            .setImage('attachment://Guild.png');
+            .setImage('attachment://Guild.png')
+            .setFooter({ text: 'わどぼっと 自動ログ生成' });
 
           await interaction.editReply({
-            embeds: [done],
+            embeds: [logEmbed],
             components: [],
-            files: [
-              { attachment: './commands/admin/Guild.png', name: 'Guild.png' },
-              logFile,
-            ],
+            files: [{ attachment: './commands/admin/Guild.png', name: 'Guild.png' }],
           });
         } catch (err) {
           await interaction.editReply({ content: `⚠️ エラー: ${err.message}` });
