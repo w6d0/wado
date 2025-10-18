@@ -10,7 +10,7 @@ import {
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('nuke')
+    .setName('server-nuke')
     .setDescription('チャンネルを完全リセットします（画像＋ログ付き）')
     .addChannelOption(opt =>
       opt.setName('channel').setDescription('対象チャンネル').setRequired(false)
