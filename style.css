@@ -1,0 +1,56 @@
+:root{
+  --bg: #eaf7ff; /* 薄い水色背景 */
+  --frame: #074b9c; /* 濃い青（額縁） */
+  --card-bg: #f7fdff;
+  --accent: #0077cc;
+  --text: #01202b;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;font-family: "Noto Sans JP", system-ui, -apple-system, "Helvetica Neue", Arial;
+  background:linear-gradient(180deg,var(--bg),#f0fbff);
+  color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+.page{width:100%;max-width:1100px}
+.hero{display:flex;justify-content:center}
+.slide-card{
+  display:flex;gap:24px;background:var(--card-bg);
+  border:14px solid var(--frame);border-radius:18px;
+  padding:20px;align-items:center;overflow:hidden;box-shadow:0 10px 30px rgba(2,25,45,0.12);
+  transform:translateY(26px);opacity:0;transition:transform .7s ease, opacity .6s ease;
+}
+body.loaded .slide-card{transform:none;opacity:1}
+.card-content{flex:1;min-width:0}
+.card-media{width:240px;display:flex;align-items:center;justify-content:center}
+.miku{width:220px;height:auto;border-radius:12px;box-shadow:0 6px 18px rgba(2,25,45,0.12);}
+.title{margin:0;font-size:28px;color:var(--frame)}
+.subtitle{margin:6px 0 18px;color:var(--accent)}
+.items-grid{display:flex;gap:18px}
+.items-grid ul{list-style:none;margin:0;padding:0;min-width:0}
+.items-grid li{background:rgba(255,255,255,0.6);margin:6px 0;padding:8px 10px;border-radius:8px;border:1px solid rgba(7,75,156,0.06)}
+.price{font-weight:700;color:var(--frame)}
+.bundle{background:linear-gradient(90deg,#fff4e6,#fff);color:#7a3d00;font-weight:700}
+.cta{margin-top:14px}
+.primary{display:inline-block;background:var(--frame);color:white;padding:10px 16px;border-radius:10px;text-decoration:none}
+.primary:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(7,75,156,0.18)}
+
+/* Footer badges */
+.site-footer{position:fixed;left:18px;right:18px;bottom:18px;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+.site-footer .left,.site-footer .right{display:flex;gap:8px;pointer-events:auto}
+.badge{background:rgba(0,0,0,0.06);padding:8px 10px;border-radius:8px;font-size:13px}
+.server{background:var(--frame);color:white;padding:8px 12px;border-radius:8px;text-decoration:none}
+
+/* Responsiveness */
+@media (max-width:820px){
+  .slide-card{flex-direction:column;align-items:stretch}
+  .card-media{width:100%;justify-content:center}
+  .miku{width:160px}
+  .items-grid{flex-direction:column}
+}
+
+/* subtle pulse on bundle */
+.bundle{animation:bundlePulse 2.2s infinite}
+@keyframes bundlePulse{0%{transform:scale(1)}50%{transform:scale(1.02)}100%{transform:scale(1)}}
