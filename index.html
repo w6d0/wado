@@ -94,7 +94,7 @@
   let fadeInterval = null;
   let userInteracted = false;
 
-  // 初期設定
+  // 初期設定（ブラウザ制限対策）
   bgm.volume = 0;
   bgm.muted = true;
 
@@ -105,12 +105,15 @@
 
     bgm.play().then(() => {
       console.log(`🎵 再生開始: ${src}`);
-      bgm.muted = false;
-      fadeIn(bgm, 0.1, 2000); // 2秒フェードイン
+      // 再生成功 → 少し遅れて音を戻す（Chrome対策）
+      setTimeout(() => {
+        bgm.muted = false;
+        fadeIn(bgm, 0.1, 2000);
+      }, 1000);
     }).catch(err => {
       console.warn("⚠️ 自動再生がブロックされました:", err);
       if (!userInteracted) {
-        console.log("💡 ページをクリックするとBGMが再生されます。");
+        console.log("💡 ページをクリック・スクロールなどするとBGMが再生されます。");
       }
     });
   }
@@ -146,7 +149,7 @@
     }, 100);
   }
 
-  // 🎶 曲が終わったら次へ（フェード付き）
+  // 🎶 曲が終わったら次へ
   bgm.addEventListener("ended", () => {
     fadeOut(bgm, 1500, () => {
       current = (current + 1) % tracks.length;
@@ -159,15 +162,20 @@
     setTimeout(() => playTrack(current), 500);
   });
 
-  // 🖱️ ユーザーがクリックしたら即再生（ブロック解除用）
-  document.addEventListener("click", () => {
+  // 🖱️🧭🖱️ ユーザー操作（クリック・スクロール・キー押下・マウス移動・タップ）で再試行
+  function unlockPlayback() {
     if (!userInteracted) {
       userInteracted = true;
       console.log("🟢 ユーザー操作検知 → 自動再生再試行");
       playTrack(current);
     }
+  }
+
+  ["click", "mousemove", "scroll", "touchstart", "keydown"].forEach(event => {
+    document.addEventListener(event, unlockPlayback, { once: true });
   });
 </script>
+
 
   </body>
 </html>
