@@ -6,36 +6,30 @@
     <title>わどのさいと</title>
     <link rel="icon" href="assets/miku.jpg" type="image/jpeg">
     <link rel="stylesheet" href="styles.css">
+
     <style>
-      /* 再生ボタンを画面中央に追加 */
+      /* 🎵 右上の再生ボタン */
       .play-button {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        top: 18px;
+        right: 18px;
         background: var(--frame);
         color: white;
-        padding: 16px 28px;
-        font-size: 18px;
+        padding: 10px 16px;
+        font-size: 15px;
         border: none;
-        border-radius: 10px;
-        box-shadow: 0 8px 18px rgba(7, 75, 156, 0.25);
+        border-radius: 8px;
         cursor: pointer;
         z-index: 999;
-        transition: all 0.25s ease;
+        box-shadow: 0 4px 10px rgba(7,75,156,0.25);
+        transition: background 0.3s ease, transform 0.2s ease;
       }
       .play-button:hover {
-        transform: translate(-50%, -52%);
         background: #005bbb;
-      }
-      .play-button.hidden {
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.6s ease;
+        transform: translateY(-2px);
       }
     </style>
   </head>
-
   <body>
     <main class="page">
       <section class="hero">
@@ -46,13 +40,36 @@
 
             <div class="items-grid">
               <ul>
-                <li>猫缶</li><li>XP</li><li>NP</li><li>敵城</li><li>自城</li><li>銀チケ</li><li>金チケ</li><li>プラチケ</li><li>レジェチケ</li>
+                <li>猫缶</li>
+                <li>XP</li>
+                <li>NP</li>
+                <li>敵城</li>
+                <li>自城</li>
+                <li>銀チケ</li>
+                <li>金チケ</li>
+                <li>プラチケ</li>
+                <li>レジェチケ</li>
               </ul>
+
               <ul>
-                <li>全キャラ開放</li><li>全キャラレベルマ</li><li>全キャラ第三形態</li><li>全ステ解放</li><li>お宝（銅・銀・金）</li><li>クリア回数</li><li>バトルアイテム</li><li>キャッツアイ</li><li>マタタビ</li>
+                <li>全キャラ開放</li>
+                <li>全キャラレベルマ</li>
+                <li>全キャラ第三形態</li>
+                <li>全ステ解放</li>
+                <li>お宝（銅・銀・金）</li>
+                <li>クリア回数</li>
+                <li>バトルアイテム</li>
+                <li>キャッツアイ</li>
+                <li>マタタビ</li>
               </ul>
+
               <ul>
-                <li>猫ビタン</li><li>城素材</li><li>リーダーシップ</li><li>広告削除</li><li>施設レベル</li><li>指定キャラ</li>
+                <li>猫ビタン</li>
+                <li>城素材</li>
+                <li>リーダーシップ</li>
+                <li>広告削除</li>
+                <li>施設レベル</li>
+                <li>指定キャラ</li>
                 <li class="price">各50円</li>
                 <li class="bundle">選び放題 300円</li>
               </ul>
@@ -80,11 +97,12 @@
       </div>
     </footer>
 
-    <!-- ✅ 再生ボタン -->
+    <!-- 🎵 右上に再生ボタン -->
     <button id="playButton" class="play-button">🎵 BGM再生</button>
 
-    <!-- ✅ 音楽 -->
-    <audio id="bgm" preload="auto"></audio>
+    <script src="script.js"></script>
+
+    <audio id="bgm" autoplay muted preload="auto"></audio>
 
     <script>
       const tracks = [
@@ -101,20 +119,22 @@
       let fadeInterval = null;
 
       bgm.volume = 0;
+      bgm.muted = true;
 
-      // 🎧 再生関数
       function playTrack(index) {
         const src = tracks[index];
         bgm.src = src;
+        bgm.load();
+
         bgm.play().then(() => {
           console.log(`🎵 再生開始: ${src}`);
+          if (bgm.muted) bgm.muted = false;
           fadeIn(bgm, 0.1, 2000);
         }).catch(err => {
-          console.warn("再生エラー:", err);
+          console.warn("⚠️ 再生ブロック:", err);
         });
       }
 
-      // フェードイン
       function fadeIn(audio, targetVolume, duration) {
         if (fading) return;
         fading = true;
@@ -129,7 +149,6 @@
         }, 100);
       }
 
-      // フェードアウト
       function fadeOut(audio, duration, callback) {
         if (fading) return;
         fading = true;
@@ -145,7 +164,6 @@
         }, 100);
       }
 
-      // 曲が終わったら次へ
       bgm.addEventListener("ended", () => {
         fadeOut(bgm, 1500, () => {
           current = (current + 1) % tracks.length;
@@ -153,9 +171,10 @@
         });
       });
 
-      // ✅ ボタンタップで再生開始
       playButton.addEventListener("click", () => {
-        playButton.classList.add("hidden");
+        playButton.textContent = "🎶 再生中…";
+        playButton.disabled = true;
+        bgm.muted = false;
         playTrack(current);
       });
     </script>
