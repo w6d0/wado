@@ -3,10 +3,39 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>わどのさいと</title>
-  <link rel="icon" href="assets/miku.jpg" type="image/jpeg">
-  <link rel="stylesheet" href="styles.css">
+    <title>わどのさいと</title>
+    <link rel="icon" href="assets/miku.jpg" type="image/jpeg">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      /* 再生ボタンを画面中央に追加 */
+      .play-button {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--frame);
+        color: white;
+        padding: 16px 28px;
+        font-size: 18px;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 8px 18px rgba(7, 75, 156, 0.25);
+        cursor: pointer;
+        z-index: 999;
+        transition: all 0.25s ease;
+      }
+      .play-button:hover {
+        transform: translate(-50%, -52%);
+        background: #005bbb;
+      }
+      .play-button.hidden {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s ease;
+      }
+    </style>
   </head>
+
   <body>
     <main class="page">
       <section class="hero">
@@ -17,36 +46,13 @@
 
             <div class="items-grid">
               <ul>
-                <li>猫缶</li>
-                <li>XP</li>
-                <li>NP</li>
-                <li>敵城</li>
-                <li>自城</li>
-                <li>銀チケ</li>
-                <li>金チケ</li>
-                <li>プラチケ</li>
-                <li>レジェチケ</li>
+                <li>猫缶</li><li>XP</li><li>NP</li><li>敵城</li><li>自城</li><li>銀チケ</li><li>金チケ</li><li>プラチケ</li><li>レジェチケ</li>
               </ul>
-
               <ul>
-                <li>全キャラ開放</li>
-                <li>全キャラレベルマ</li>
-                <li>全キャラ第三形態</li>
-                <li>全ステ解放</li>
-                <li>お宝（銅・銀・金）</li>
-                <li>クリア回数</li>
-                <li>バトルアイテム</li>
-                <li>キャッツアイ</li>
-                <li>マタタビ</li>
+                <li>全キャラ開放</li><li>全キャラレベルマ</li><li>全キャラ第三形態</li><li>全ステ解放</li><li>お宝（銅・銀・金）</li><li>クリア回数</li><li>バトルアイテム</li><li>キャッツアイ</li><li>マタタビ</li>
               </ul>
-
               <ul>
-                <li>猫ビタン</li>
-                <li>城素材</li>
-                <li>リーダーシップ</li>
-                <li>広告削除</li>
-                <li>施設レベル</li>
-                <li>指定キャラ</li>
+                <li>猫ビタン</li><li>城素材</li><li>リーダーシップ</li><li>広告削除</li><li>施設レベル</li><li>指定キャラ</li>
                 <li class="price">各50円</li>
                 <li class="bundle">選び放題 300円</li>
               </ul>
@@ -58,7 +64,6 @@
           </div>
 
           <div class="card-media">
-            <!-- GIF を assets/miku.gif に置いてください -->
             <img src="assets/miku.gif" alt="みく.gif" class="miku" onerror="this.style.opacity=0.5;">
           </div>
         </div>
@@ -75,101 +80,84 @@
       </div>
     </footer>
 
-    <script src="script.js"></script>
+    <!-- ✅ 再生ボタン -->
+    <button id="playButton" class="play-button">🎵 BGM再生</button>
 
-<audio id="bgm" autoplay muted preload="auto"></audio>
+    <!-- ✅ 音楽 -->
+    <audio id="bgm" preload="auto"></audio>
 
-<script>
-  const tracks = [
-    "https://github.com/w6d0/wado/raw/refs/heads/main/music/1_Tube.mov",
-    "https://github.com/w6d0/wado/raw/refs/heads/main/music/2_Tube.mov",
-    "https://github.com/w6d0/wado/raw/refs/heads/main/music/3_Tube.mov",
-    "https://github.com/w6d0/wado/raw/refs/heads/main/music/5_Tube.mov"
-  ];
+    <script>
+      const tracks = [
+        "https://github.com/w6d0/wado/raw/refs/heads/main/music/1_Tube.mov",
+        "https://github.com/w6d0/wado/raw/refs/heads/main/music/2_Tube.mov",
+        "https://github.com/w6d0/wado/raw/refs/heads/main/music/3_Tube.mov",
+        "https://github.com/w6d0/wado/raw/refs/heads/main/music/5_Tube.mov"
+      ];
 
-  const bgm = document.getElementById("bgm");
-  let current = 0;
-  let fading = false;
-  let fadeInterval = null;
-  let userUnlocked = false;
+      const bgm = document.getElementById("bgm");
+      const playButton = document.getElementById("playButton");
+      let current = 0;
+      let fading = false;
+      let fadeInterval = null;
 
-  bgm.volume = 0;
-  bgm.muted = true;
+      bgm.volume = 0;
 
-  function playTrack(index) {
-    const src = tracks[index];
-    bgm.src = src;
-    bgm.load();
-
-    bgm.play().then(() => {
-      console.log(`🎵 再生開始: ${src}`);
-      if (bgm.muted) bgm.muted = false;
-      fadeIn(bgm, 0.1, 2000);
-    }).catch(err => {
-      console.warn("⚠️ 自動再生がブロックされました:", err);
-    });
-  }
-
-  function fadeIn(audio, targetVolume, duration) {
-    if (fading) return;
-    fading = true;
-    let step = (targetVolume - audio.volume) / (duration / 100);
-    fadeInterval = setInterval(() => {
-      if (audio.volume < targetVolume) {
-        audio.volume = Math.min(audio.volume + step, targetVolume);
-      } else {
-        clearInterval(fadeInterval);
-        fading = false;
+      // 🎧 再生関数
+      function playTrack(index) {
+        const src = tracks[index];
+        bgm.src = src;
+        bgm.play().then(() => {
+          console.log(`🎵 再生開始: ${src}`);
+          fadeIn(bgm, 0.1, 2000);
+        }).catch(err => {
+          console.warn("再生エラー:", err);
+        });
       }
-    }, 100);
-  }
 
-  function fadeOut(audio, duration, callback) {
-    if (fading) return;
-    fading = true;
-    let step = audio.volume / (duration / 100);
-    fadeInterval = setInterval(() => {
-      if (audio.volume > 0) {
-        audio.volume = Math.max(audio.volume - step, 0);
-      } else {
-        clearInterval(fadeInterval);
-        fading = false;
-        if (callback) callback();
+      // フェードイン
+      function fadeIn(audio, targetVolume, duration) {
+        if (fading) return;
+        fading = true;
+        let step = (targetVolume - audio.volume) / (duration / 100);
+        fadeInterval = setInterval(() => {
+          if (audio.volume < targetVolume) {
+            audio.volume = Math.min(audio.volume + step, targetVolume);
+          } else {
+            clearInterval(fadeInterval);
+            fading = false;
+          }
+        }, 100);
       }
-    }, 100);
-  }
 
-  bgm.addEventListener("ended", () => {
-    fadeOut(bgm, 1500, () => {
-      current = (current + 1) % tracks.length;
-      playTrack(current);
-    });
-  });
+      // フェードアウト
+      function fadeOut(audio, duration, callback) {
+        if (fading) return;
+        fading = true;
+        let step = audio.volume / (duration / 100);
+        fadeInterval = setInterval(() => {
+          if (audio.volume > 0) {
+            audio.volume = Math.max(audio.volume - step, 0);
+          } else {
+            clearInterval(fadeInterval);
+            fading = false;
+            if (callback) callback();
+          }
+        }, 100);
+      }
 
-  // 初回ロード後に試す（自動再生できる環境なら即始まる）
-  window.addEventListener("load", () => {
-    setTimeout(() => playTrack(current), 500);
-  });
+      // 曲が終わったら次へ
+      bgm.addEventListener("ended", () => {
+        fadeOut(bgm, 1500, () => {
+          current = (current + 1) % tracks.length;
+          playTrack(current);
+        });
+      });
 
-  // ✅ ユーザー操作で再生解除
-  function unlockPlayback() {
-    if (userUnlocked) return;
-    userUnlocked = true;
-    console.log("🟢 ユーザー操作検知 → 強制再生開始");
-
-    try {
-      bgm.muted = false;
-      bgm.load();
-      playTrack(current);
-    } catch (err) {
-      console.warn("再生エラー:", err);
-    }
-  }
-
-  ["click", "mousemove", "scroll", "touchstart", "keydown"].forEach(event => {
-    document.addEventListener(event, unlockPlayback, { once: true });
-  });
-</script>
-
+      // ✅ ボタンタップで再生開始
+      playButton.addEventListener("click", () => {
+        playButton.classList.add("hidden");
+        playTrack(current);
+      });
+    </script>
   </body>
 </html>
