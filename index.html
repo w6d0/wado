@@ -90,22 +90,58 @@
 
   const bgm = document.getElementById("bgm");
   let current = 0;
+  const maxVolume = 0.1; // 通常音量
+  const fadeDuration = 1500; // フェード時間（ミリ秒）
 
-  bgm.volume = 0; // 最初はミュートで開始
+  bgm.volume = 0;
 
   function playTrack(index) {
     bgm.src = tracks[index];
+    bgm.muted = false;
+    bgm.volume = 0;
+
     bgm.play().then(() => {
-      // 再生が始まったら音を戻す
-      setTimeout(() => { bgm.muted = false; bgm.volume = 0.1; }, 1000);
+      console.log(`🎵 再生開始: ${tracks[index]}`);
+      fadeIn(bgm, maxVolume, fadeDuration);
     }).catch(err => {
-      console.log("自動再生がブロックされました:", err);
+      console.warn("⚠️ 自動再生がブロックされました:", err);
     });
   }
 
+  function fadeOut(audio, duration, callback) {
+    const steps = 20;
+    const stepTime = duration / steps;
+    const volStep = audio.volume / steps;
+    let count = 0;
+
+    const fade = setInterval(() => {
+      audio.volume = Math.max(0, audio.volume - volStep);
+      count++;
+      if (count >= steps) {
+        clearInterval(fade);
+        if (callback) callback();
+      }
+    }, stepTime);
+  }
+
+  function fadeIn(audio, targetVolume, duration) {
+    const steps = 20;
+    const stepTime = duration / steps;
+    const volStep = targetVolume / steps;
+    let count = 0;
+
+    const fade = setInterval(() => {
+      audio.volume = Math.min(targetVolume, audio.volume + volStep);
+      count++;
+      if (count >= steps) clearInterval(fade);
+    }, stepTime);
+  }
+
   bgm.addEventListener("ended", () => {
-    current = (current + 1) % tracks.length;
-    playTrack(current);
+    fadeOut(bgm, fadeDuration, () => {
+      current = (current + 1) % tracks.length;
+      playTrack(current);
+    });
   });
 
   window.addEventListener("load", () => {
@@ -114,5 +150,6 @@
     }, 300);
   });
 </script>
+
   </body>
 </html>
