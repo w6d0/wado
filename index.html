@@ -80,7 +80,6 @@
 <audio id="bgm" autoplay muted preload="auto"></audio>
 
 <script>
-  // ✅ 曲リスト（GitHub raw）
   const tracks = [
     "https://github.com/w6d0/wado/raw/refs/heads/main/music/1_Tube.mov",
     "https://github.com/w6d0/wado/raw/refs/heads/main/music/2_Tube.mov",
@@ -92,33 +91,25 @@
   let current = 0;
   let fading = false;
   let fadeInterval = null;
-  let userInteracted = false;
+  let userUnlocked = false;
 
-  // 初期設定（ブラウザ制限対策）
   bgm.volume = 0;
   bgm.muted = true;
 
-  // 🎧 再生関数
   function playTrack(index) {
     const src = tracks[index];
     bgm.src = src;
+    bgm.load();
 
     bgm.play().then(() => {
       console.log(`🎵 再生開始: ${src}`);
-      // 再生成功 → 少し遅れて音を戻す（Chrome対策）
-      setTimeout(() => {
-        bgm.muted = false;
-        fadeIn(bgm, 0.1, 2000);
-      }, 1000);
+      if (bgm.muted) bgm.muted = false;
+      fadeIn(bgm, 0.1, 2000);
     }).catch(err => {
       console.warn("⚠️ 自動再生がブロックされました:", err);
-      if (!userInteracted) {
-        console.log("💡 ページをクリック・スクロールなどするとBGMが再生されます。");
-      }
     });
   }
 
-  // 🎚️ フェードイン
   function fadeIn(audio, targetVolume, duration) {
     if (fading) return;
     fading = true;
@@ -133,7 +124,6 @@
     }, 100);
   }
 
-  // 🎚️ フェードアウト
   function fadeOut(audio, duration, callback) {
     if (fading) return;
     fading = true;
@@ -149,7 +139,6 @@
     }, 100);
   }
 
-  // 🎶 曲が終わったら次へ
   bgm.addEventListener("ended", () => {
     fadeOut(bgm, 1500, () => {
       current = (current + 1) % tracks.length;
@@ -157,17 +146,23 @@
     });
   });
 
-  // 🚀 初回ロード後に試す
+  // 初回ロード後に試す（自動再生できる環境なら即始まる）
   window.addEventListener("load", () => {
     setTimeout(() => playTrack(current), 500);
   });
 
-  // 🖱️🧭🖱️ ユーザー操作（クリック・スクロール・キー押下・マウス移動・タップ）で再試行
+  // ✅ ユーザー操作で再生解除
   function unlockPlayback() {
-    if (!userInteracted) {
-      userInteracted = true;
-      console.log("🟢 ユーザー操作検知 → 自動再生再試行");
+    if (userUnlocked) return;
+    userUnlocked = true;
+    console.log("🟢 ユーザー操作検知 → 強制再生開始");
+
+    try {
+      bgm.muted = false;
+      bgm.load();
       playTrack(current);
+    } catch (err) {
+      console.warn("再生エラー:", err);
     }
   }
 
@@ -175,7 +170,6 @@
     document.addEventListener(event, unlockPlayback, { once: true });
   });
 </script>
-
 
   </body>
 </html>
