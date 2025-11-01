@@ -80,74 +80,92 @@
 <audio id="bgm" autoplay muted preload="auto"></audio>
 
 <script>
-  // 曲リスト（順番に再生）
+  // ✅ 曲リスト（GitHub raw）
   const tracks = [
-    "music/【妖怪ウォッチ公式】エンディング第2弾 「ダン・ダン・ドゥビ・ズバー」【妖Tube】.mp4",
-    "music/【妖怪ウォッチ公式】エンディング第3弾 「アイドルはウーニャニャの件」【妖Tube】.mp4",
-    "music/【妖怪ウォッチ公式】エンディング第5弾 「宇宙ダンス」【妖tube】.mp4",
-    "music/【妖怪ウォッチ公式】オープニング第1弾 「ゲラゲラポーのうた」【妖Tube】.mp4"
+    "https://github.com/w6d0/wado/raw/refs/heads/main/music/1_Tube.mov",
+    "https://github.com/w6d0/wado/raw/refs/heads/main/music/2_Tube.mov",
+    "https://github.com/w6d0/wado/raw/refs/heads/main/music/3_Tube.mov",
+    "https://github.com/w6d0/wado/raw/refs/heads/main/music/5_Tube.mov"
   ];
 
   const bgm = document.getElementById("bgm");
   let current = 0;
-  const maxVolume = 0.1; // 通常音量
-  const fadeDuration = 1500; // フェード時間（ミリ秒）
+  let fading = false;
+  let fadeInterval = null;
+  let userInteracted = false;
 
+  // 初期設定
   bgm.volume = 0;
+  bgm.muted = true;
 
+  // 🎧 再生関数
   function playTrack(index) {
-    bgm.src = tracks[index];
-    bgm.muted = false;
-    bgm.volume = 0;
+    const src = tracks[index];
+    bgm.src = src;
 
     bgm.play().then(() => {
-      console.log(`🎵 再生開始: ${tracks[index]}`);
-      fadeIn(bgm, maxVolume, fadeDuration);
+      console.log(`🎵 再生開始: ${src}`);
+      bgm.muted = false;
+      fadeIn(bgm, 0.1, 2000); // 2秒フェードイン
     }).catch(err => {
       console.warn("⚠️ 自動再生がブロックされました:", err);
+      if (!userInteracted) {
+        console.log("💡 ページをクリックするとBGMが再生されます。");
+      }
     });
   }
 
-  function fadeOut(audio, duration, callback) {
-    const steps = 20;
-    const stepTime = duration / steps;
-    const volStep = audio.volume / steps;
-    let count = 0;
+  // 🎚️ フェードイン
+  function fadeIn(audio, targetVolume, duration) {
+    if (fading) return;
+    fading = true;
+    let step = (targetVolume - audio.volume) / (duration / 100);
+    fadeInterval = setInterval(() => {
+      if (audio.volume < targetVolume) {
+        audio.volume = Math.min(audio.volume + step, targetVolume);
+      } else {
+        clearInterval(fadeInterval);
+        fading = false;
+      }
+    }, 100);
+  }
 
-    const fade = setInterval(() => {
-      audio.volume = Math.max(0, audio.volume - volStep);
-      count++;
-      if (count >= steps) {
-        clearInterval(fade);
+  // 🎚️ フェードアウト
+  function fadeOut(audio, duration, callback) {
+    if (fading) return;
+    fading = true;
+    let step = audio.volume / (duration / 100);
+    fadeInterval = setInterval(() => {
+      if (audio.volume > 0) {
+        audio.volume = Math.max(audio.volume - step, 0);
+      } else {
+        clearInterval(fadeInterval);
+        fading = false;
         if (callback) callback();
       }
-    }, stepTime);
+    }, 100);
   }
 
-  function fadeIn(audio, targetVolume, duration) {
-    const steps = 20;
-    const stepTime = duration / steps;
-    const volStep = targetVolume / steps;
-    let count = 0;
-
-    const fade = setInterval(() => {
-      audio.volume = Math.min(targetVolume, audio.volume + volStep);
-      count++;
-      if (count >= steps) clearInterval(fade);
-    }, stepTime);
-  }
-
+  // 🎶 曲が終わったら次へ（フェード付き）
   bgm.addEventListener("ended", () => {
-    fadeOut(bgm, fadeDuration, () => {
+    fadeOut(bgm, 1500, () => {
       current = (current + 1) % tracks.length;
       playTrack(current);
     });
   });
 
+  // 🚀 初回ロード後に試す
   window.addEventListener("load", () => {
-    setTimeout(() => {
+    setTimeout(() => playTrack(current), 500);
+  });
+
+  // 🖱️ ユーザーがクリックしたら即再生（ブロック解除用）
+  document.addEventListener("click", () => {
+    if (!userInteracted) {
+      userInteracted = true;
+      console.log("🟢 ユーザー操作検知 → 自動再生再試行");
       playTrack(current);
-    }, 300);
+    }
   });
 </script>
 
