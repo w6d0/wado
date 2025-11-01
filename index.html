@@ -76,5 +76,43 @@
     </footer>
 
     <script src="script.js"></script>
+
+<audio id="bgm" autoplay muted preload="auto"></audio>
+
+<script>
+  // 曲リスト（順番に再生）
+  const tracks = [
+    "music/【妖怪ウォッチ公式】エンディング第2弾 「ダン・ダン・ドゥビ・ズバー」【妖Tube】.mp4",
+    "music/【妖怪ウォッチ公式】エンディング第3弾 「アイドルはウーニャニャの件」【妖Tube】.mp4",
+    "music/【妖怪ウォッチ公式】エンディング第5弾 「宇宙ダンス」【妖tube】.mp4",
+    "music/【妖怪ウォッチ公式】オープニング第1弾 「ゲラゲラポーのうた」【妖Tube】.mp4"
+  ];
+
+  const bgm = document.getElementById("bgm");
+  let current = 0;
+
+  bgm.volume = 0; // 最初はミュートで開始
+
+  function playTrack(index) {
+    bgm.src = tracks[index];
+    bgm.play().then(() => {
+      // 再生が始まったら音を戻す
+      setTimeout(() => { bgm.muted = false; bgm.volume = 0.1; }, 1000);
+    }).catch(err => {
+      console.log("自動再生がブロックされました:", err);
+    });
+  }
+
+  bgm.addEventListener("ended", () => {
+    current = (current + 1) % tracks.length;
+    playTrack(current);
+  });
+
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      playTrack(current);
+    }, 300);
+  });
+</script>
   </body>
 </html>
